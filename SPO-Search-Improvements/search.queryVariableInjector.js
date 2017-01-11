@@ -134,14 +134,17 @@
 	                }
 	            }
 	            // Function to load synonyms asynchronous - poor mans synonyms
-	            function loadSynonyms() {
+	            function loadSynonyms(urlSynonymsList) {
 	                var defer = Q.defer();
 	                // Check if the code has to retrieve synonyms
 	                if (!ShowSynonyms) {
 	                    defer.resolve();
 	                    return defer.promise;
 	                }
-	                var urlSynonymsList = _siteUrl + "/_api/Web/Lists/getByTitle('" + SynonymsList + "')/Items?$select=Title,Synonym,TwoWay";
+	                //var urlSynonymsList = _siteUrl + "/_api/Web/Lists/getByTitle('" + SynonymsList + "')/Items?$select=Title,Synonym,TwoWay";
+	                if (urlSynonymsList === undefined){
+	                	urlSynonymsList = _siteUrl + "/_api/Web/Lists/getByTitle('" + SynonymsList + "')/Items?$select=Title,Synonym,TwoWay";
+	                }
 	                var req = new XMLHttpRequest();
 	                req.onreadystatechange = function () {
 	                    if (this.readyState === 4) {
@@ -200,10 +203,13 @@
 	                if (ShowSynonyms) {
 	                    if (queryParts) {
 	                        for (var i = 0; i < queryParts.length; i++) {
-	                            if (_synonymTable[queryParts[i]]) {
+	                        	//lowercase the term because so that it matches the lowercased values in _synonymTable
+	                        	//remove quotes from strings so that the phrase matches values in _synonymTable
+	                            var cleanQueryPart = queryParts[i].toLowerCase().replace(/"/g,'')
+	                            if (_synonymTable[cleanQueryPart]) {
 	                                // Replace the current query part in the query with all the synonyms
-	                                query = query.replace(queryParts[i], String.format('({0} OR {1})', queryParts[i], _synonymTable[queryParts[i]].join(' OR ')));
-	                                synonyms.push(_synonymTable[queryParts[i]]);
+	                                query = query.replace(queryParts[i], String.format('({0} OR {1})', queryParts[i], _synonymTable[cleanQueryPart].join(' OR ')));
+	                                synonyms.push(_synonymTable[cleanQueryPart]);
 	                            }
 	                        }
 	                    }
